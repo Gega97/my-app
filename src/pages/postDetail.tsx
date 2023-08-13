@@ -21,6 +21,16 @@ const PostDetail: React.FC<IGlobarProps> = ({ isMobile }) => {
   const navigate = useNavigate();
   const params: Params = useParams();
 
+  const onNavigate = (id: string | undefined, isPost: boolean = false) => {
+    if (isPost) {
+      navigate(`/posts/${id}`);
+    } else {
+      id === state.user?._id
+        ? navigate(`/profile`)
+        : navigate(`/profile/${id}`);
+    }
+  };
+
   const getPost = async (): Promise<void> => {
     try {
       const { post } = (await myAppApi.get(`/posts/${params.id}`)).data;
@@ -191,6 +201,7 @@ const PostDetail: React.FC<IGlobarProps> = ({ isMobile }) => {
           text={text}
           handleText={handleText}
           addComment={addComment}
+          onNavigate={onNavigate}
         />
       ) : (
         <DesktopView
@@ -206,6 +217,7 @@ const PostDetail: React.FC<IGlobarProps> = ({ isMobile }) => {
           text={text}
           handleText={handleText}
           addComment={addComment}
+          onNavigate={onNavigate}
         />
       )}
       <Backdrop

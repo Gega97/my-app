@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useRef } from "react";
 import Swal from "sweetalert2";
 import Backdrop from "@mui/material/Backdrop";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -15,6 +15,7 @@ import {
 } from "react-router-dom";
 import myAppApi from "../api";
 import { Comment, Post, User } from "../types";
+import { Box } from "@mui/material";
 
 const Profile: React.FC<IGlobarProps> = ({ isMobile }) => {
   const { state, logout, handlePage, updateUser, handleLoading } =
@@ -29,6 +30,10 @@ const Profile: React.FC<IGlobarProps> = ({ isMobile }) => {
   const [selectedPost, setSelectedPost] = useState<undefined | Post>(undefined);
   const [text, setText] = useState<string>("");
   const [isShowMoreComments, setIsShowMoreComments] = useState<boolean>(false);
+  const [totalPosts, setTotalPosts] = useState<number>(0);
+  const [isLoadingPost, setIsLoadingPost] = useState<boolean>(false);
+  const [isNext, setIsNext] = useState<boolean>(false);
+  const containerRef = useRef<HTMLElement | null>(null);
 
   const handleSelectedPost = (post: Post) => {
     setSelectedPost(post);
@@ -232,12 +237,17 @@ const Profile: React.FC<IGlobarProps> = ({ isMobile }) => {
 
   const getPosts = async (): Promise<void> => {
     try {
-      const { posts } = (
+      const response = (
         await myAppApi.get(
-          `/posts/user/${params.id ? params.id : state.user?._id}`
+          `/posts/user/${params.id ? params.id : state.user?._id}/${
+            posts.length
+          }`
         )
       ).data;
-      setPosts(posts);
+      setPosts(response.posts);
+      setIsNext(response.isNext);
+
+      setTotalPosts(response.totalPost);
     } catch (err) {
       console.log(err);
     }
@@ -302,12 +312,56 @@ const Profile: React.FC<IGlobarProps> = ({ isMobile }) => {
     if (!state.isLogged) navigate("/");
   }, []);
 
+  useEffect(() => {
+    const options = {
+      root: null, // El contenedor raíz es el viewport
+      rootMargin: "0px",
+      threshold: 1.0, // 100% de intersección necesaria
+    };
+
+    const callback = (entries: any, observer: any) => {
+      entries.forEach(async (entry: any) => {
+        if (entry.isIntersecting) {
+          console.log("El box ya se muestra");
+          if (isNext) {
+            setIsLoadingPost(true);
+            const response = (
+              await myAppApi.get(
+                `/posts/user/${params.id ? params.id : state.user?._id}/${
+                  posts.length
+                }`
+              )
+            ).data;
+            console.log(response);
+            const currentPosts: Post[] = posts;
+            response.posts.forEach((el: Post) => currentPosts.push(el));
+            setIsNext(response.isNext);
+            setPosts(currentPosts);
+            setIsLoadingPost(false);
+          }
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(callback, options);
+
+    if (containerRef && containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => {
+      if (containerRef.current) {
+        observer.unobserve(containerRef.current);
+      }
+    };
+  }, [posts, isNext]);
+
   useEffect((): void => {
     getData();
   }, [params]);
 
   return (
-    <>
+    <Box>
       {isMobile ? (
         <MobileView
           logout={logout}
@@ -331,6 +385,8 @@ const Profile: React.FC<IGlobarProps> = ({ isMobile }) => {
           isShowMoreComments={isShowMoreComments}
           text={text}
           addComment={addComment}
+          totalPosts={totalPosts}
+          isLoadingPost={isLoadingPost}
         />
       ) : (
         <DesktopView
@@ -355,6 +411,8 @@ const Profile: React.FC<IGlobarProps> = ({ isMobile }) => {
           isShowMoreComments={isShowMoreComments}
           text={text}
           addComment={addComment}
+          totalPosts={totalPosts}
+          isLoadingPost={isLoadingPost}
         />
       )}
       <Backdrop
@@ -363,7 +421,8 @@ const Profile: React.FC<IGlobarProps> = ({ isMobile }) => {
       >
         <CircularProgress color="inherit" />
       </Backdrop>
-    </>
+      <Box ref={containerRef}></Box>
+    </Box>
   );
 };
 

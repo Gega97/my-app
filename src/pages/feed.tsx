@@ -1,11 +1,11 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useRef } from "react";
 
 import { IGlobarProps } from "../interfaces";
 import DesktopView from "../views/feed/desktop";
 import MobileView from "../views/feed/mobile";
 import { AppContext } from "../context";
 import { NavigateFunction, useNavigate } from "react-router-dom";
-import { Backdrop, CircularProgress } from "@mui/material";
+import { Backdrop, Box, CircularProgress } from "@mui/material";
 import myAppApi from "../api";
 import { Post } from "../types";
 
@@ -13,18 +13,24 @@ const Feed: React.FC<IGlobarProps> = ({ isMobile }) => {
   const { state, handlePage, handleFollow, handleUnfollow, handleLoading } =
     useContext(AppContext);
   const navigate: NavigateFunction = useNavigate();
-  const [posts, setPosts] = useState<Post[]>();
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [isLoadingPost, setIsLoadingPost] = useState<boolean>(false);
+  const [isNext, setIsNext] = useState<boolean>(false);
+
+  const containerRef = useRef<HTMLElement | null>(null);
 
   const goToProfile = (username: string): void =>
     navigate(`/profile/${username}`);
 
   const getPosts = async (): Promise<void> => {
-    handleLoading(true);
+    if (posts.length === 0) handleLoading(true);
     try {
-      const { posts } = (await myAppApi.get("/posts/feed/list")).data;
-      console.log(posts);
-      const feedPosts: Post[] = posts;
+      const response = (await myAppApi.get(`/posts/feed/list/${posts.length}`))
+        .data;
+      console.log(response);
+      const feedPosts: Post[] = response.posts;
       setPosts(feedPosts);
+      setIsNext(response.isNext);
     } catch (err) {
       console.log(err);
     }
@@ -50,11 +56,51 @@ const Feed: React.FC<IGlobarProps> = ({ isMobile }) => {
   }, []);
 
   useEffect(() => {
+    const options = {
+      root: null, // El contenedor raíz es el viewport
+      rootMargin: "0px",
+      threshold: 1.0, // 100% de intersección necesaria
+    };
+
+    const callback = (entries: any, observer: any) => {
+      entries.forEach(async (entry: any) => {
+        if (entry.isIntersecting) {
+          console.log("El box ya se muestra");
+          if (isNext) {
+            setIsLoadingPost(true);
+            const response = (
+              await myAppApi.get(`/posts/feed/list/${posts.length}`)
+            ).data;
+            console.log(response);
+            const currentPosts: Post[] = posts;
+            response.posts.forEach((el: Post) => currentPosts.push(el));
+            setIsNext(response.isNext);
+            setPosts(currentPosts);
+            setIsLoadingPost(false);
+          }
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(callback, options);
+
+    if (containerRef && containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => {
+      if (containerRef.current) {
+        observer.unobserve(containerRef.current);
+      }
+    };
+  }, [posts, isNext]);
+
+  useEffect(() => {
     getPosts();
   }, []);
 
   return (
-    <>
+    <Box>
       {isMobile ? (
         <MobileView
           state={state}
@@ -64,6 +110,7 @@ const Feed: React.FC<IGlobarProps> = ({ isMobile }) => {
           handleUnfollow={handleUnfollow}
           posts={posts}
           onNavigate={onNavigate}
+          isLoadingPost={isLoadingPost}
         />
       ) : (
         <DesktopView
@@ -74,6 +121,7 @@ const Feed: React.FC<IGlobarProps> = ({ isMobile }) => {
           handleUnfollow={handleUnfollow}
           posts={posts}
           onNavigate={onNavigate}
+          isLoadingPost={isLoadingPost}
         />
       )}
       <Backdrop
@@ -82,7 +130,8 @@ const Feed: React.FC<IGlobarProps> = ({ isMobile }) => {
       >
         <CircularProgress color="inherit" />
       </Backdrop>
-    </>
+      <Box ref={containerRef}></Box>
+    </Box>
   );
 };
 

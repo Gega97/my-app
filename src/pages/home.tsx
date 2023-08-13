@@ -182,7 +182,6 @@ const Home: React.FC<IGlobarProps> = ({ isMobile }) => {
     const callback = (entries: any, observer: any) => {
       entries.forEach(async (entry: any) => {
         if (entry.isIntersecting) {
-          console.log(isNext);
           if (isNext) {
             setIsLoadingPost(true);
             const response = (

@@ -1,32 +1,24 @@
-import { Box, Paper } from "@mui/material";
+import { Box, CircularProgress } from "@mui/material";
 import { Masonry } from "@mui/lab";
 
 import AppBar from "../../components/appBar";
 import NavigationBar from "../../components/navigationBar";
-import UserListItem from "../../components/usersListItem";
 import { IFeedProps } from "../../interfaces";
-import { Post, User } from "../../types";
+import { Post } from "../../types";
 
-import image1 from "../../assets/image1.png";
-import image2 from "../../assets/image2.png";
-import image3 from "../../assets/image3.png";
-import image4 from "../../assets/image4.png";
-import image5 from "../../assets/image5.png";
 import PostItem from "../../components/postItem";
 
 const MobileView: React.FC<IFeedProps> = ({
   isMobile,
   state,
-  goToProfile,
-  handleFollow,
-  handleUnfollow,
   onNavigate,
   posts,
+  isLoadingPost,
 }) => {
   return (
     <Box
       style={{
-        height: "100vh",
+        minHeight: "100vh",
         backgroundColor: "#F3F6F9",
       }}
     >
@@ -57,6 +49,11 @@ const MobileView: React.FC<IFeedProps> = ({
               />
             ))}
           </Masonry>
+        )}
+        {isLoadingPost && (
+          <Box style={{ display: "flex", justifyContent: "center" }}>
+            <CircularProgress color="secondary" />
+          </Box>
         )}
       </Box>
       <NavigationBar isMobile={isMobile} state={state} />

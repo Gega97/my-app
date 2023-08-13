@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { Box, Avatar, IconButton, Button } from "@mui/material";
+import { Box, Avatar, IconButton, CircularProgress } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import PersonRemoveIcon from "@mui/icons-material/PersonRemove";
@@ -10,12 +9,6 @@ import NavigationBar from "../../components/navigationBar";
 import UserForm from "../../components/userForm";
 import { Post, User } from "../../types";
 
-import image1 from "../../assets/image1.png";
-import image2 from "../../assets/image2.png";
-import image3 from "../../assets/image3.png";
-import image4 from "../../assets/image4.png";
-import image5 from "../../assets/image5.png";
-import { Masonry } from "@mui/lab";
 import PostItem from "../../components/postItem";
 
 const MobileView: React.FC<IProfileProps> = ({
@@ -39,11 +32,10 @@ const MobileView: React.FC<IProfileProps> = ({
   onNavigate,
   text,
   addComment,
+  totalPosts,
+  isLoadingPost,
 }) => {
   const user: User | null = isGuess ? isGuessUser : state.user;
-  const images = [image1, image2, image3, image4, image5];
-
-  const [isGallery] = useState<boolean>(false);
 
   return (
     <Box
@@ -141,7 +133,7 @@ const MobileView: React.FC<IProfileProps> = ({
               >
                 <Box style={{ textAlign: "center" }}>
                   <Box>Posts</Box>
-                  <Box style={{ fontWeight: "bold" }}>{posts.length}</Box>
+                  <Box style={{ fontWeight: "bold" }}>{totalPosts}</Box>
                 </Box>
                 <Box style={{ textAlign: "center" }}>
                   <Box>Followers</Box>
@@ -157,47 +149,31 @@ const MobileView: React.FC<IProfileProps> = ({
                 </Box>
               </Box>
 
-              {isGallery ? (
-                <Masonry columns={2} spacing={0.5} style={{ marginTop: 10 }}>
-                  {images.map((item, index) => (
-                    <div key={index}>
-                      <img
-                        src={item}
-                        srcSet={item}
-                        alt={"Epale"}
-                        loading="lazy"
-                        style={{
-                          borderBottomLeftRadius: 4,
-                          borderBottomRightRadius: 4,
-                          display: "block",
-                          width: "100%",
-                        }}
-                      />
-                    </div>
-                  ))}
-                </Masonry>
-              ) : (
-                <Box style={{ marginTop: 16 }}>
-                  {posts?.map((el: Post) => (
-                    <PostItem
-                      post={el}
-                      addLike={addLike}
-                      onNavigate={onNavigate}
-                      removeLike={removeLike}
-                      state={state}
-                      key={el._id}
-                      handleSelectedPost={handleSelectedPost}
-                      selectedPost={selectedPost}
-                      addComment={addComment}
-                      text={text}
-                      handleText={handleText}
-                      getMoreComments={getMoreComments}
-                      isShowMoreComments={isShowMoreComments}
-                      page="profile"
-                    />
-                  ))}
-                </Box>
-              )}
+              <Box style={{ marginTop: 16 }}>
+                {posts?.map((el: Post) => (
+                  <PostItem
+                    post={el}
+                    addLike={addLike}
+                    onNavigate={onNavigate}
+                    removeLike={removeLike}
+                    state={state}
+                    key={el._id}
+                    handleSelectedPost={handleSelectedPost}
+                    selectedPost={selectedPost}
+                    addComment={addComment}
+                    text={text}
+                    handleText={handleText}
+                    getMoreComments={getMoreComments}
+                    isShowMoreComments={isShowMoreComments}
+                    page="profile"
+                  />
+                ))}
+                {isLoadingPost && (
+                  <Box style={{ display: "flex", justifyContent: "center" }}>
+                    <CircularProgress color="secondary" />
+                  </Box>
+                )}
+              </Box>
             </Box>
           </Box>
         </Box>

@@ -4,10 +4,8 @@ import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import ModeCommentOutlinedIcon from "@mui/icons-material/ModeCommentOutlined";
 
 import { IPostDetailProps } from "../../interfaces";
-import AppBar from "../../components/appBar";
-import NavigationBar from "../../components/navigationBar";
-
 import { Comment } from "../../types";
+import NavigationBar from "../../components/navigationBar";
 import AppBarPost from "../../components/appBarPost";
 
 const MobileView: React.FC<IPostDetailProps> = ({
@@ -23,6 +21,7 @@ const MobileView: React.FC<IPostDetailProps> = ({
   handleText,
   text,
   addComment,
+  onNavigate,
 }) => {
   return (
     <Box
@@ -56,7 +55,12 @@ const MobileView: React.FC<IPostDetailProps> = ({
               alignItems: "center",
             }}
           >
-            <Avatar src={post?.user.avatar} />
+            <Avatar
+              src={post?.user.avatar}
+              onClick={() =>
+                post && post.user?._id && onNavigate(post.user?._id, false)
+              }
+            />
             <Box style={{ marginLeft: 8 }}>
               <Box>{post?.user.username}</Box>
               {state.user?._id !== post?.user._id && (
@@ -102,7 +106,7 @@ const MobileView: React.FC<IPostDetailProps> = ({
           </Box>
           {post?.description && post?.description}
           {post?.image !== "" && (
-            <img src={post?.image} style={{ width: "100%" }} />
+            <img src={post?.image} style={{ width: "100%" }} alt="" />
           )}
           <Box
             style={{
@@ -149,7 +153,12 @@ const MobileView: React.FC<IPostDetailProps> = ({
                   }}
                 >
                   <Box style={{ marginRight: 8 }}>
-                    <Avatar src={el.user.avatar} />
+                    <Avatar
+                      src={el.user.avatar}
+                      onClick={() =>
+                        el && el.user._id && onNavigate(el.user?._id, false)
+                      }
+                    />
                   </Box>
                   <Box style={{ width: "100%" }}>
                     <Box style={{ fontWeight: 600, fontSize: 14 }}>

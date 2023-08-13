@@ -55,6 +55,7 @@ export interface IPostDetailProps {
   text: string;
   handleText: (currentText: string) => void;
   addComment: (isPost: boolean, image: string, text: string) => void;
+  onNavigate: (id: string, isPost: boolean) => void;
 }
 
 export interface IHomeProps {
@@ -130,6 +131,8 @@ export interface IProfileProps {
   getMoreComments: () => void;
   isShowMoreComments: boolean;
   addComment: (isPost: boolean, image: string, text: string) => void;
+  totalPosts: number;
+  isLoadingPost: boolean;
 }
 
 export interface IAppBar {
@@ -190,6 +193,7 @@ export interface IFeedProps {
   handleUnfollow: (username: string) => void;
   posts: Post[] | undefined;
   onNavigate: (id: string, isPost: boolean) => void;
+  isLoadingPost: boolean;
 }
 
 export interface IUserList {
